@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To'rt Kishilik Mafia O'yini</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        }
+        
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .game-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .players {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .player {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        
+        .player:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .player.alive {
+            border-color: #4CAF50;
+        }
+        
+        .player.dead {
+            background: rgba(255, 0, 0, 0.3);
+            opacity: 0.6;
+            border-color: #f44336;
+        }
+        
+        .player.selected {
+            border-color: #FFD700;
+            background: rgba(255, 215, 0, 0.2);
+        }
+        
+        .role {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+        }
+        
+        .role.mafia {
+            color: #ff6b6b;
+        }
+        
+        .role.citizen {
+            color: #4ecdc4;
+        }
+        
+        .role.detective {
+            color: #45b7d1;
+        }
+        
+        .role.doctor {
+            color: #96ceb4;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .phase {
+            text-align: center;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+        
+        .message {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.1em;
+        }
+        
+        .rules {
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        
+        .rules h3 {
+            color: #FFD700;
+            margin-top: 20px;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .winner {
+            animation: pulse 2s infinite;
+            background: rgba(255, 215, 0, 0.3) !important;
+            border-color: #FFD700 !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎭 To'rt Kishilik Mafia O'yini</h1>
+        
+        <div class="game-section">
+            <div class="phase" id="phase">O'yinni boshlash uchun tugmani bosing</div>
+            <div class="message" id="message">Barcha o'yinchilar tayyor bo'lsin!</div>
+            
+            <div class="players" id="players">
+                <div class="player" id="player1">
+                    <div class="role">O'yinchi 1</div>
+                    <div>Tayyor</div>
+                </div>
+                <div class="player" id="player2">
+                    <div class="role">O'yinchi 2</div>
+                    <div>Tayyor</div>
+                </div>
+                <div class="player" id="player3">
+                    <div class="role">O'yinchi 3</div>
+                    <div>Tayyor</div>
+                </div>
+                <div class="player" id="player4">
+                    <div class="role">O'yinchi 4</div>
+                    <div>Tayyor</div>
+                </div>
+            </div>
+            
+            <div class="buttons">
+                <button onclick="startGame()" id="startBtn">O'yinni Boshlash</button>
+                <button onclick="nextPhase()" id="nextBtn" style="display: none;">Keyingi Bosqich</button>
+                <button onclick="resetGame()" id="resetBtn" style="display: none;">Qaytadan O'ynash</button>
+            </div>
+        </div>
+        
+        <div class="game-section">
+            <div class="rules">
+                <h3>🎯 O'yin Qoidalari:</h3>
+                <p><strong>Rollar:</strong></p>
+                <p>🔴 <strong>Mafia (1 kishi):</strong> Tunlari boshqa o'yinchilarni yo'q qiladi</p>
+                <p>🔵 <strong>Detektiv (1 kishi):</strong> Tunlari kimnidir tekshiradi (mafia yoki yo'q)</p>
+                <p>🟢 <strong>Doktor (1 kishi):</strong> Tunlari kimnidir himoya qiladi</p>
+                <p>⚪ <strong>Oddiy fuqaro (1 kishi):</strong> faqat ovoz beradi</p>
+                
+                <h3>📋 O'yin Jarayoni:</h3>
+                <p><strong>1. Tun bosqichi:</strong> Barcha o'yinchilar ko'zlarini yumadi</p>
+                <p>- Mafia uyg'onadi va qurbonini tanlaydi</p>
+                <p>- Detektiv uyg'onadi va kimnidir tekshiradi</p>
+                <p>- Doktor uyg'onadi va kimnidir himoya qiladi</p>
+                
+                <p><strong>2. Kun bosqichi:</strong> Barcha o'yinchilar muhokama qiladi va ovoz beradi</p>
+                <p>- Kim mafia deb o'ylasangiz, uni yo'q qiling</p>
+                
+                <h3>🏆 G'alaba Sharoitlari:</h3>
+                <p><strong>Mafia g'alaba qiladi:</strong> Agar mafia soni qolgan fuqarolar soniga teng bo'lsa</p>
+                <p><strong>Fuqarolar g'alaba qiladi:</strong> Agar mafia yo'q qilinsa</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let gameState = {
+            players: [
+                {id: 1, name: "O'yinchi 1", role: "", alive: true, selected: false},
+                {id: 2, name: "O'yinchi 2", role: "", alive: true, selected: false},
+                {id: 3, name: "O'yinchi 3", role: "", alive: true, selected: false},
+                {id: 4, name: "O'yinchi 4", role: "", alive: true, selected: false}
+            ],
+            phase: "setup",
+            currentNightAction: "",
+            nightActions: {},
+            gameStarted: false,
+            winner: null
+        };
+
+        const roles = ["mafia", "detective", "doctor", "citizen"];
+        const roleNames = {
+            "mafia": "Mafia",
+            "detective": "Detektiv", 
+            "doctor": "Doktor",
+            "citizen": "Fuqaro"
+        };
+
+        function startGame() {
+            // Rollarni tasodifiy taqsimlash
+            const shuffledRoles = [...roles].sort(() => Math.random() - 0.5);
+            gameState.players.forEach((player, index) => {
+                player.role = shuffledRoles[index];
+            });
+            
+            gameState.gameStarted = true;
+            gameState.phase = "night";
+            gameState.currentNightAction = "mafia";
+            
+            document.getElementById('startBtn').style.display = 'none';
+            document.getElementById('nextBtn').style.display = 'inline-block';
+            document.getElementById('resetBtn').style.display = 'inline-block';
+            
+            updateDisplay();
+            document.getElementById('message').textContent = "Rollar taqsimlandi! Har bir o'yinchi o'z rolini ko'rsin.";
+        }
+
+        function updateDisplay() {
+            const playersDiv = document.getElementById('players');
+            const phaseDiv = document.getElementById('phase');
+            const messageDiv = document.getElementById('message');
+            
+            // O'yinchilarni yangilash
+            gameState.players.forEach((player, index) => {
+                const playerDiv = document.getElementById(`player${player.id}`);
+                const roleDiv = playerDiv.querySelector('.role');
+                
+                if (gameState.gameStarted) {
+                    roleDiv.textContent = `${player.name} - ${roleNames[player.role]}`;
+                    roleDiv.className = `role ${player.role}`;
+                }
+                
+                playerDiv.className = `player ${player.alive ? 'alive' : 'dead'} ${player.selected ? 'selected' : ''}`;
+                
+                if (gameState.winner && 
+                    ((gameState.winner === "mafia" && player.role === "mafia") ||
+                     (gameState.winner === "citizens" && player.role !== "mafia"))) {
+                    playerDiv.classList.add('winner');
+                }
+            });
+            
+            // Fazani yangilash
+            if (gameState.phase === "setup") {
+                phaseDiv.textContent = "O'yinni boshlash uchun tugmani bosing";
+            } else if (gameState.phase === "night") {
+                const actionNames = {
+                    "mafia": "🌙 Tun - Mafia o'z qurbonini tanlaydi",
+                    "detective": "🌙 Tun - Detektiv tekshiradi", 
+                    "doctor": "🌙 Tun - Doktor himoya qiladi"
+                };
+                phaseDiv.textContent = actionNames[gameState.currentNightAction] || "🌙 Tun bosqichi";
+            } else if (gameState.phase === "day") {
+                phaseDiv.textContent = "☀️ Kun - Muhokama va ovoz berish";
+            } else if (gameState.phase === "gameOver") {
+                phaseDiv.textContent = `🎉 O'yin tugadi - ${gameState.winner === "mafia" ? "Mafia" : "Fuqarolar"} g'alaba qildi!`;
+            }
+        }
+
+        function selectPlayer(playerId) {
+            if (!gameState.gameStarted || gameState.phase === "gameOver") return;
+            
+            // Avval barcha tanlovlarni bekor qilish
+            gameState.players.forEach(p => p.selected = false);
+            
+            // Yangi tanlov
+            const player = gameState.players.find(p => p.id === playerId);
+            if (player && player.alive) {
+                player.selected = true;
+            }
+            
+            updateDisplay();
+        }
+
+        function nextPhase() {
+            if (gameState.phase === "night") {
+                handleNightAction();
+            } else if (gameState.phase === "day") {
+                handleDayAction();
+            }
+            
+            checkWinCondition();
+            updateDisplay();
+        }
+
+        function handleNightAction() {
+            const selectedPlayer = gameState.players.find(p => p.selected);
+            
+            if (!selectedPlayer && gameState.currentNightAction !== "end") {
+                alert("Iltimos, o'yinchini tanlang!");
+                return;
+            }
+            
+            if (gameState.currentNightAction === "mafia") {
+                if (selectedPlayer) {
+                    gameState.nightActions.mafiaTarget = selectedPlayer.id;
+                }
+                gameState.currentNightAction = "detective";
+                document.getElementById('message').textContent = "Detektiv uyg'ondi. Kimni tekshirmoqchisiz?";
+                
+            } else if (gameState.currentNightAction === "detective") {
+                if (selectedPlayer) {
+                    gameState.nightActions.detectiveTarget = selectedPlayer.id;
+                    const isMafia = selectedPlayer.role === "mafia";
+                    alert(`Detektiv uchun: ${selectedPlayer.name} ${isMafia ? "MAFIA" : "MAFIA EMAS"}`);
+                }
+                gameState.currentNightAction = "doctor";
+                document.getElementById('message').textContent = "Doktor uyg'ondi. Kimni himoya qilasiz?";
+                
+            } else if (gameState.currentNightAction === "doctor") {
+                if (selectedPlayer) {
+                    gameState.nightActions.doctorTarget = selectedPlayer.id;
+                }
+                
+                // Tun natijalarini hisoblash
+                const mafiaTarget = gameState.nightActions.mafiaTarget;
+                const doctorTarget = gameState.nightActions.doctorTarget;
+                
+                if (mafiaTarget && mafiaTarget !== doctorTarget) {
+                    const victim = gameState.players.find(p => p.id === mafiaTarget);
+                    victim.alive = false;
+                    document.getElementById('message').textContent = `Tun o'tdi. ${victim.name} yo'q qilindi.`;
+                } else if (mafiaTarget && mafiaTarget === doctorTarget) {
+                    document.getElementById('message').textContent = "Tun o'tdi. Doktor kimnidir saqlab qoldi!";
+                } else {
+                    document.getElementById('message').textContent = "Tun tinch o'tdi.";
+                }
+                
+                gameState.phase = "day";
+                gameState.nightActions = {};
+            }
+            
+            // Tanlovni bekor qilish
+            gameState.players.forEach(p => p.selected = false);
+        }
+
+        function handleDayAction() {
+            const selectedPlayer = gameState.players.find(p => p.selected);
+            
+            if (!selectedPlayer) {
+                alert("Kimni yo'q qilishni xohlaysiz? O'yinchini tanlang!");
+                return;
+            }
+            
+            selectedPlayer.alive = false;
+            document.getElementById('message').textContent = `Kun ovoz berish natijasida ${selectedPlayer.name} yo'q qilindi.`;
+            
+            gameState.phase = "night";
+            gameState.currentNightAction = "mafia";
+            gameState.players.forEach(p => p.selected = false);
+        }
+
+        function checkWinCondition() {
+            const alivePlayers = gameState.players.filter(p => p.alive);
+            const aliveMafia = alivePlayers.filter(p => p.role === "mafia");
+            const aliveCitizens = alivePlayers.filter(p => p.role !== "mafia");
+            
+            if (aliveMafia.length === 0) {
+                gameState.winner = "citizens";
+                gameState.phase = "gameOver";
+                document.getElementById('message').textContent = "🎉 Fuqarolar g'alaba qildi! Mafia yo'q qilindi.";
+            } else if (aliveMafia.length >= aliveCitizens.length) {
+                gameState.winner = "mafia";
+                gameState.phase = "gameOver";
+                document.getElementById('message').textContent = "🎉 Mafia g'alaba qildi! Ular ko'pchilikni tashkil qildi.";
+            }
+            
+            if (gameState.phase === "gameOver") {
+                document.getElementById('nextBtn').style.display = 'none';
+            }
+        }
+
+        function resetGame() {
+            gameState = {
+                players: [
+                    {id: 1, name: "O'yinchi 1", role: "", alive: true, selected: false},
+                    {id: 2, name: "O'yinchi 2", role: "", alive: true, selected: false},
+                    {id: 3, name: "O'yinchi 3", role: "", alive: true, selected: false},
+                    {id: 4, name: "O'yinchi 4", role: "", alive: true, selected: false}
+                ],
+                phase: "setup",
+                currentNightAction: "",
+                nightActions: {},
+                gameStarted: false,
+                winner: null
+            };
+            
+            document.getElementById('startBtn').style.display = 'inline-block';
+            document.getElementById('nextBtn').style.display = 'none';
+            document.getElementById('resetBtn').style.display = 'none';
+            document.getElementById('message').textContent = "Barcha o'yinchilar tayyor bo'lsin!";
+            
+            updateDisplay();
+        }
+
+        // O'yinchi tanlash uchun event listener
+        document.addEventListener('DOMContentLoaded', function() {
+            for (let i = 1; i <= 4; i++) {
+                document.getElementById(`player${i}`).addEventListener('click', function() {
+                    selectPlayer(i);
+                });
+            }
+            
+            updateDisplay();
+        });
+    </script>
+</body>
+</html>
